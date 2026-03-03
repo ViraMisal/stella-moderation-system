@@ -20,16 +20,22 @@ pip install -r requirements.txt
 python run.py all      # бот + панель
 ```
 
-Docker: `docker-compose up -d`
+Docker:
+```bash
+docker-compose up -d   # поднимает бот, панель и health-сервис
+```
+
+Health-сервис (Go) доступен на порту 9090: `/health`, `/metrics`, `/readiness`.
 
 ## Структура
 
 ```
-core/        — конфигурация, модели, настройки
-web/routes/  — Flask-панель (9 модулей)
-handlers/    — обработчики бота (11 модулей)
-tests/       — pytest
-deploy/      — systemd, nginx
+core/            — конфигурация, модели, настройки
+web/routes/      — Flask-панель (9 модулей)
+handlers/        — обработчики бота (11 модулей)
+services/health/ — Go-микросервис мониторинга (:9090)
+tests/           — pytest
+deploy/          — systemd, nginx
 ```
 
 ## Тесты
@@ -42,4 +48,4 @@ ruff check .
 
 ---
 
-Проект в стадии активной разработки. В планах — частичный переход на Go для критичных по производительности компонентов и переработка архитектуры под мультитенантность.
+Проект в стадии активной разработки. Health/metrics сервис уже на Go, в планах — расширение Go-части и переработка архитектуры под мультитенантность.
