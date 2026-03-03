@@ -55,7 +55,7 @@ bot = telebot.TeleBot(
     BOT_TOKEN,
     parse_mode="HTML",
     skip_pending=True,
-    num_threads=4,
+    num_threads=8,
     exception_handler=_StellaExceptionHandler(),
 )
 

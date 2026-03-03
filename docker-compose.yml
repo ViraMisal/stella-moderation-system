@@ -38,6 +38,26 @@ services:
       retries: 3
       start_period: 10s
 
+  health:
+    build:
+      context: services/health
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - data:/data:ro
+    environment:
+      - DATABASE_PATH=/data/app.db
+      - HEALTH_PORT=9090
+    depends_on:
+      web:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9090/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
 volumes:
   data:
   logs:

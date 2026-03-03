@@ -12,7 +12,9 @@
 import os
 
 bind = os.getenv("GUNICORN_BIND", "127.0.0.1:8000")
-workers = int(os.getenv("GUNICORN_WORKERS", "2"))
+workers = int(os.getenv("GUNICORN_WORKERS", "4"))
+threads = int(os.getenv("GUNICORN_THREADS", "2"))
+worker_class = os.getenv("GUNICORN_WORKER_CLASS", "gthread")
 timeout = int(os.getenv("GUNICORN_TIMEOUT", "30"))
 loglevel = os.getenv("GUNICORN_LOGLEVEL", "info")
 

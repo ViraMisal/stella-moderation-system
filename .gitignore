@@ -38,6 +38,9 @@ Thumbs.db
 # pytest
 .pytest_cache/
 
+# go
+services/health/health-service
+
 # temp
 *.tmp
 *.bak

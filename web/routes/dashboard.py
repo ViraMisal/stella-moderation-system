@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import datetime
+import threading
+import time
 
 from flask import Blueprint, flash, redirect, render_template, url_for
 from sqlalchemy import desc, func
@@ -13,6 +15,33 @@ from web.decorators import login_required
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
+# Кэш дашборда: ключ = frozenset(accessible_chats) или "all"
+_cache = {}
+_cache_lock = threading.Lock()
+_CACHE_TTL = 30
+
+
+def _cache_key():
+    accessible = get_accessible_chats()
+    if accessible is None:
+        return "all", None
+    return frozenset(accessible), accessible
+
+
+def _get_cached():
+    key, accessible = _cache_key()
+    with _cache_lock:
+        entry = _cache.get(key)
+        if entry and time.time() - entry["ts"] < _CACHE_TTL:
+            return entry["stats"]
+    return None
+
+
+def _set_cached(stats):
+    key, _ = _cache_key()
+    with _cache_lock:
+        _cache[key] = {"stats": stats, "ts": time.time()}
+
 
 @dashboard_bp.get("/")
 @login_required
@@ -23,6 +52,10 @@ def index():
 @dashboard_bp.get("/dashboard")
 @login_required
 def dashboard():
+    cached = _get_cached()
+    if cached:
+        return render_template("dashboard.html", stats=cached)
+
     db = SessionLocal()
     try:
         accessible = get_accessible_chats()
@@ -72,6 +105,9 @@ def dashboard():
             "recent_punishments": recent_punishments,
             "top_offenders": top_offenders, "activity_data": activity_data,
         }
+
+        _set_cached(stats)
+
     except Exception as e:
         from flask import current_app
         current_app.logger.error("Dashboard error: %s", e, exc_info=True)
