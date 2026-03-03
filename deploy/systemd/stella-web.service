@@ -1,0 +1,22 @@
+[Unit]
+Description=Stella Web Panel (Gunicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=stella
+WorkingDirectory=/opt/stella
+EnvironmentFile=/opt/stella/.env
+Environment=ENV=production
+Environment=DATA_DIR=/opt/stella/data
+Environment=LOG_DIR=/opt/stella/logs
+Environment=GUNICORN_BIND=127.0.0.1:8000
+ExecStart=/opt/stella/.venv/bin/gunicorn -c gunicorn_conf.py wsgi:app
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=stella-web
+
+[Install]
+WantedBy=multi-user.target

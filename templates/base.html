@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ru" class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Панель модерации{% endblock %} | Stella Moderation System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        body { font-family: 'Inter', sans-serif; }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .card-hover { transition: all 0.3s ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(0,0,0,0.1); }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success { background-color: #d1fae5; color: #065f46; }
+        .badge-danger { background-color: #fee2e2; color: #991b1b; }
+        .badge-warning { background-color: #fef3c7; color: #92400e; }
+        .badge-info { background-color: #dbeafe; color: #1e40af; }
+
+        .sidebar-link { transition: all 0.2s ease; }
+        .sidebar-link:hover { background-color: rgba(255, 255, 255, 0.1); padding-left: 1.5rem; }
+        .sidebar-link.active { background-color: rgba(255, 255, 255, 0.15); border-left: 4px solid white; }
+
+        .loading { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+    {% block extra_head %}{% endblock %}
+{% if PANEL_THEME %}
+<link rel="stylesheet" href="{{ url_for('static', filename='themes/' ~ PANEL_THEME ~ '.css') }}">
+{% endif %}
+</head>
+<body class="h-full">
+<div class="min-h-full">
+
+    {% if session.admin %}
+    <!-- Mobile overlay -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden"></div>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 gradient-bg text-white transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out">
+        <div class="flex flex-col h-full">
+            <!-- Logo -->
+            <div class="flex items-center justify-center h-20 border-b border-white border-opacity-20">
+                <i class="fas fa-shield-alt text-3xl mr-3"></i>
+                <span class="text-xl font-bold">ModPanel</span>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 overflow-y-auto py-4" id="sidebarNav">
+                <a href="{{ url_for('dashboard.dashboard') }}" class="sidebar-link flex items-center px-6 py-3 {% if request.endpoint == 'dashboard.dashboard' %}active{% endif %}">
+                    <i class="fas fa-chart-line w-6"></i>
+                    <span class="ml-3">Дашборд</span>
+                </a>
+                <a href="{{ url_for('users.users_list') }}" class="sidebar-link flex items-center px-6 py-3 {% if request.endpoint in ['users.users_list', 'users.user_detail'] %}active{% endif %}">
+                    <i class="fas fa-users w-6"></i>
+                    <span class="ml-3">Пользователи</span>
+                </a>
+                {% if is_superadmin %}
+                <a href="{{ url_for('users.blacklist') }}" class="sidebar-link flex items-center px-6 py-3 {% if request.endpoint == 'users.blacklist' %}active{% endif %}">
+                    <i class="fas fa-user-slash w-6"></i>
+                    <span class="ml-3">Черный список</span>
+                </a>
+                {% endif %}
+                <a href="{{ url_for('chats.chats_list') }}" class="sidebar-link flex items-center px-6 py-3 {% if request.endpoint in ['chats.chats_list', 'chats.chat_detail'] %}active{% endif %}">
+                    <i class="fas fa-comments w-6"></i>
+                    <span class="ml-3">Чаты {% if accessible_chat_count != 'все' %}({{ accessible_chat_count }}){% endif %}</span>
+                </a>
+
+                {% if is_superadmin %}
+                <a href="{{ url_for('health.logs') }}" class="sidebar-link flex items-center px-6 py-3 {% if request.endpoint == 'health.logs' %}active{% endif %}">
+                    <i class="fas fa-history w-6"></i>
+                    <span class="ml-3">Логи</span>
+                </a>
+                <a href="{{ url_for('bot_sender.bot_send') }}" class="sidebar-link flex items-center px-6 py-3 {% if request.endpoint == 'bot_sender.bot_send' %}active{% endif %}">
+                    <i class="fas fa-paper-plane w-6"></i>
+                    <span class="ml-3">Сообщение от бота</span>
+                </a>
+                <a href="{{ url_for('appeals.appeals_list') }}" class="sidebar-link flex items-center px-6 py-3 {% if request.endpoint in ['appeals.appeals_list'] %}active{% endif %}">
+                    <i class="fas fa-inbox w-6"></i>
+                    <span class="ml-3">Апелляции</span>
+                </a>
+                <a href="{{ url_for('settings.settings') }}" class="sidebar-link flex items-center px-6 py-3 {% if request.endpoint == 'settings.settings' %}active{% endif %}">
+                    <i class="fas fa-cog w-6"></i>
+                    <span class="ml-3">Настройки</span>
+                </a>
+                {% endif %}
+
+                {% if current_role == 'superadmin' %}
+                <a href="{{ url_for('admin_tools.admins') }}" class="sidebar-link flex items-center px-6 py-3 {% if request.endpoint == 'admin_tools.admins' %}active{% endif %}">
+                    <i class="fas fa-user-shield w-6"></i>
+                    <span class="ml-3">Админы</span>
+                </a>
+                {% endif %}
+            </nav>
+
+            <!-- User info -->
+            <div class="border-t border-white border-opacity-20 p-4">
+                <div class="flex items-center">
+                    <div class="w-10 h-10 rounded-full bg-white bg-opacity-20 flex items-center justify-center">
+                        <i class="fas {% if is_superadmin %}fa-crown{% else %}fa-user-shield{% endif %}"></i>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <p class="text-sm font-medium">{{ admin_name }}</p>
+                        <p class="text-xs text-white text-opacity-70">
+                            {% if is_superadmin %}
+                                Супер-админ
+                            {% else %}
+                                Модератор
+                            {% endif %}
+                        </p>
+                    </div>
+                    <a href="{{ url_for('auth.logout') }}" class="ml-2 text-white hover:text-red-200" title="Выйти">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Main content wrapper -->
+    <div class="{% if session.admin %}md:ml-64{% endif %}">
+        {% if session.admin %}
+        <!-- Mobile topbar -->
+        <div class="md:hidden sticky top-0 z-30 bg-white shadow-sm">
+            <div class="flex items-center justify-between px-4 py-3">
+                <button id="sidebarToggle" class="text-gray-700 hover:text-gray-900" aria-label="Меню">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div class="font-bold text-gray-900">Stella</div>
+                <a href="{{ url_for('auth.logout') }}" class="text-gray-700 hover:text-gray-900" aria-label="Выйти">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="fixed top-4 right-4 z-50 space-y-2" id="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message fade-in max-w-sm bg-white rounded-lg shadow-lg overflow-hidden">
+                            <div class="p-4 flex items-center {% if category == 'error' %}border-l-4 border-red-500{% elif category == 'success' %}border-l-4 border-green-500{% elif category == 'warning' %}border-l-4 border-yellow-500{% else %}border-l-4 border-blue-500{% endif %}">
+                                <div class="flex-shrink-0">
+                                    {% if category == 'error' %}
+                                        <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+                                    {% elif category == 'success' %}
+                                        <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                                    {% elif category == 'warning' %}
+                                        <i class="fas fa-exclamation-triangle text-yellow-500 text-xl"></i>
+                                    {% else %}
+                                        <i class="fas fa-info-circle text-blue-500 text-xl"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="ml-3 flex-1">
+                                    <p class="text-sm font-medium text-gray-900">{{ message }}</p>
+                                </div>
+                                <button onclick="this.parentElement.parentElement.remove()" class="ml-3 text-gray-400 hover:text-gray-600" aria-label="Закрыть">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Page content -->
+        <div class="{% if session.admin %}py-6 px-4 md:px-8{% endif %}">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-hide flash messages after 5 seconds
+    setTimeout(() => {
+        const flashMessages = document.querySelectorAll('.flash-message');
+        flashMessages.forEach(msg => {
+            msg.style.opacity = '0';
+            msg.style.transform = 'translateX(100%)';
+            msg.style.transition = 'all 0.5s ease';
+            setTimeout(() => msg.remove(), 500);
+        });
+    }, 5000);
+
+    // Mobile sidebar toggle
+    (function () {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const toggle = document.getElementById('sidebarToggle');
+        const nav = document.getElementById('sidebarNav');
+
+        if (!sidebar || !overlay || !toggle) return;
+
+        function openSidebar() {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('hidden');
+        }
+        function closeSidebar() {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('hidden');
+        }
+
+        toggle.addEventListener('click', openSidebar);
+        overlay.addEventListener('click', closeSidebar);
+
+        if (nav) {
+            nav.addEventListener('click', (e) => {
+                // Close on link click (mobile)
+                const target = e.target;
+                if (target && target.closest && target.closest('a')) {
+                    closeSidebar();
+                }
+            });
+        }
+    })();
+    
+
+
+
+    // Confirm dialogs
+    function confirmAction(message) {
+        return confirm(message);
+    }
+</script>
+
+{% block extra_js %}{% endblock %}
+
+</body>
+</html>

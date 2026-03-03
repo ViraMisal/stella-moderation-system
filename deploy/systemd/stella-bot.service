@@ -1,0 +1,21 @@
+[Unit]
+Description=Stella Moderation Bot
+After=network.target
+
+[Service]
+Type=simple
+User=stella
+WorkingDirectory=/opt/stella
+EnvironmentFile=/opt/stella/.env
+Environment=ENV=production
+Environment=DATA_DIR=/opt/stella/data
+Environment=LOG_DIR=/opt/stella/logs
+ExecStart=/opt/stella/.venv/bin/python run.py bot
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=stella-bot
+
+[Install]
+WantedBy=multi-user.target

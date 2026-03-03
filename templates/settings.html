@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Настройки{% endblock %}
+
+{% block content %}
+{% set ks_val = settings.get('kill_switch') and settings.get('kill_switch').value %}
+{% set kill_switch_on = ks_val and (ks_val|string|lower) in ['1','true','yes','on'] %}
+{% set ai_val = settings.get('ai_enabled') and settings.get('ai_enabled').value %}
+{% set ai_enabled = ai_val and (ai_val|string|lower) in ['1','true','yes','on'] %}
+
+<div class="fade-in">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">
+            <i class="fas fa-cog text-indigo-600 mr-3"></i>
+            Настройки системы
+        </h1>
+        <p class="text-gray-600 mt-2">Глобальные настройки бота и веб-панели (только НЕ ТРОГАЙ ВИНДЕР НИЧЕГО ЛИШНЕГО).</p>
+    </div>
+
+    <form method="post" action="{{ url_for('settings.update_settings') }}" class="space-y-6">
+        <!-- Kill switch -->
+        <div class="bg-white rounded-xl shadow-md p-6 border-2 {% if kill_switch_on %}border-red-500{% else %}border-transparent{% endif %}">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-skull-crossbones text-red-600 mr-3"></i>
+                        Киллсвитч
+                    </h2>
+                    <p class="text-gray-600 mt-2">
+                        Если включен — бот <b>НЕ</b> будет выдавать наказания и <b>НЕ</b> будет менять админские права.
+                        Полезно, если что-то пошло не так и нужно экстренно остановить модерацию.
+                    </p>
+                    {% if kill_switch_on %}
+                        <div class="mt-3 p-3 rounded-lg bg-red-50 border border-red-200 text-red-900 text-sm">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Сейчас киллсвитч включен: модерация выключена.
+                        </div>
+                    {% endif %}
+                </div>
+
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="kill_switch" {% if kill_switch_on %}checked{% endif %} class="sr-only peer">
+                    <div class="w-14 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-red-600"></div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Appeals -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                <i class="fas fa-life-ring text-purple-600 mr-3"></i>
+                Апелляции
+            </h2>
+            <p class="text-gray-600 mt-2">
+                Куда бот будет пересылать апелляции из лички (<code>/appeal</code>). НЕ ТРОГАЙ ВИНДЕР.
+            </p>
+
+            <div class="mt-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Appeals chat id</label>
+                <input
+                    type="text"
+                    name="appeals_chat_id"
+                    value="{{ settings.get('appeals_chat_id').value if settings.get('appeals_chat_id') else '' }}"
+                    placeholder="-1001234567890"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+                <p class="text-xs text-gray-500 mt-2">Если пусто — бот использует значение из .env (APPEALS_CHAT_ID), либо просто будет отвечать «куда писать» без форварда.</p>
+            </div>
+        </div>
+
+        <!-- AI -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center">
+                        <i class="fas fa-robot text-indigo-600 mr-3"></i>
+                        Разговорный ИИ (DeepSeek)
+                    </h2>
+                    <p class="text-gray-600 mt-2">
+                        ИИ отвечает <b>только по слову‑триггеру</b> (или если отвечают на сообщение бота).
+                        Чтобы работало — в <code>.env</code> должен быть задан <code>DEEPSEEK_API_KEY</code>.
+                    </p>
+                </div>
+
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="ai_enabled" {% if ai_enabled %}checked{% endif %} class="sr-only peer">
+                    <div class="w-14 h-8 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-indigo-600"></div>
+                </label>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Слово‑триггер</label>
+                    <input
+                        type="text"
+                        name="ai_trigger"
+                        value="{{ settings.get('ai_trigger').value if settings.get('ai_trigger') else 'стелла' }}"
+                        placeholder="стелла"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-2">Можно несколько через запятую. Пример: <code>стелла, stella</code></p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Рейтлимит (сек.)</label>
+                    <input
+                        type="number"
+                        name="ai_rate_limit_seconds"
+                        min="0"
+                        value="{{ settings.get('ai_rate_limit_seconds').value if settings.get('ai_rate_limit_seconds') else '10' }}"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-2">0 = без ограничений (я не советую).</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Разрешенные чаты (ID)</label>
+                    <textarea
+                        name="ai_allowed_chats"
+                        rows="3"
+                        placeholder="-100123...\n-100456..."
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    >{{ settings.get('ai_allowed_chats').value if settings.get('ai_allowed_chats') else '' }}</textarea>
+                    <p class="text-xs text-gray-500 mt-2">Если пусто — ИИ нигде не будет отвечать (безопасный режим).</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Контекст (последних сообщений)</label>
+                    <input
+                        type="number"
+                        name="ai_max_history"
+                        min="0"
+                        value="{{ settings.get('ai_max_history').value if settings.get('ai_max_history') else '10' }}"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-2">0 = без истории (каждый запрос отдельно).</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Whitelist пользователей (ID)</label>
+                    <input
+                        type="text"
+                        name="ai_user_whitelist"
+                        value="{{ settings.get('ai_user_whitelist').value if settings.get('ai_user_whitelist') else '' }}"
+                        placeholder="12345, 67890"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-2">Если заполнено — отвечаем <b>только</b> этим пользователям.</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Blacklist пользователей (ID)</label>
+                    <input
+                        type="text"
+                        name="ai_user_blacklist"
+                        value="{{ settings.get('ai_user_blacklist').value if settings.get('ai_user_blacklist') else '' }}"
+                        placeholder="11111, 22222"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-2">Этим пользователям бот не отвечает ИИ.</p>
+                </div>
+
+                <!-- AI prompts & params -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">System prompt (текст)</label>
+                    <textarea
+                        name="ai_system_prompt_text"
+                        rows="6"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Подсказка для ИИ (system prompt)"
+                    >{{ settings.get('ai_system_prompt_text').value if settings.get('ai_system_prompt_text') else ai_defaults['system_prompt_text'] }}</textarea>
+                    <p class="text-xs text-gray-500 mt-2">
+                        Это «характер» Стеллы: стиль, правила, ограничения. Можно смело править под свой чат.
+                    </p>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">System prompt (картинки)</label>
+                    <textarea
+                        name="ai_system_prompt_image"
+                        rows="6"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Подсказка для ИИ при обработке изображений"
+                    >{{ settings.get('ai_system_prompt_image').value if settings.get('ai_system_prompt_image') else ai_defaults['system_prompt_image'] }}</textarea>
+                    <p class="text-xs text-gray-500 mt-2">
+                        Используется когда пользователь присылает фото с триггером/ответом боту.
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Temperature</label>
+                    <input
+                        type="number"
+                        step="0.05"
+                        min="0"
+                        max="2"
+                        name="ai_temperature"
+                        value="{{ settings.get('ai_temperature').value if settings.get('ai_temperature') else ai_defaults['temperature'] }}"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-2">0.1–0.9 обычно достаточно. Чем выше — тем креативнее.</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Max tokens</label>
+                    <input
+                        type="number"
+                        min="50"
+                        max="4000"
+                        name="ai_max_tokens"
+                        value="{{ settings.get('ai_max_tokens').value if settings.get('ai_max_tokens') else ai_defaults['max_tokens'] }}"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-2">Ограничение длины ответа (чтобы не раздувало).</p>
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Fallback-текст при ошибке ИИ</label>
+                    <input
+                        type="text"
+                        name="ai_fallback_text"
+                        value="{{ settings.get('ai_fallback_text').value if settings.get('ai_fallback_text') else ai_defaults['fallback_text'] }}"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <p class="text-xs text-gray-500 mt-2">
+                        Если DeepSeek упал/нет сети — бот всё равно ответит этим текстом (чтобы «всегда был ответ»).
+                    </p>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Save -->
+        <div class="bg-white rounded-xl shadow-md p-6 flex items-center justify-between">
+            <p class="text-sm text-gray-600">
+                <i class="fas fa-info-circle mr-2"></i>
+                Изменения применяются сразу после сохранения.
+            </p>
+            <button
+                type="submit"
+                class="px-8 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-semibold rounded-lg hover:from-indigo-700 hover:to-blue-700 transition shadow-lg"
+            >
+                <i class="fas fa-save mr-2"></i>
+                Сохранить
+            </button>
+        </div>
+    </form>
+
+    <!-- Separate action: reset AI contexts -->
+    <form method="post" action="{{ url_for('settings.reset_ai_contexts') }}" class="mt-6" onsubmit="return confirmAction('Сбросить ВСЕ AI-контексты?')">
+        <div class="bg-white rounded-xl shadow-md p-6 flex items-center justify-between">
+            <div>
+                <h3 class="text-lg font-bold text-gray-900 flex items-center">
+                    <i class="fas fa-trash-restore text-gray-700 mr-3"></i>
+                    Сброс AI контекстов
+                </h3>
+                <p class="text-gray-600 mt-1">Удалит историю диалогов ИИ для всех пользователей/чатов.</p>
+            </div>
+            <button
+                type="submit"
+                class="px-8 py-3 bg-gray-100 text-gray-800 font-semibold rounded-lg hover:bg-gray-200 transition"
+            >
+                <i class="fas fa-broom mr-2"></i>
+                Сбросить
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

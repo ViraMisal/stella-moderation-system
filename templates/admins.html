@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block title %}Администраторы{% endblock %}
+{% block content %}
+<style>
+  .container-max {max-width: 1100px;margin: 0 auto;}
+  .modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:50}
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:60}
+  .modal.open,.modal-backdrop.open{display:flex}
+  .card{background:#fff;border:1px solid #eee;border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.08)}
+  .btn{border:0;border-radius:10px;padding:.6rem .95rem;cursor:pointer}
+  .btn-primary{background:#6d4aff;color:#fff}
+  .btn-ghost{background:#f3f4f6}
+  .btn-danger{background:#ef4444;color:#fff}
+  .tag{display:inline-block;background:#eef2ff;color:#4f46e5;border-radius:999px;padding:.2rem .55rem;font-size:.75rem}
+  .row{display:flex;gap:.7rem;align-items:center;flex-wrap:wrap}
+  .between{justify-content:space-between}
+  .muted{color:#6b7280}
+  .list{border:1px solid #e5e7eb;border-radius:12px}
+  .list-item{display:flex;justify-content:space-between;align-items:center;padding:1rem 1.1rem;border-top:1px solid #e5e7eb}
+  .list-item:first-child{border-top:0}
+  select,input[type="text"],input[type="number"]{border:1px solid #e5e7eb;border-radius:10px;padding:.55rem .7rem;width:100%}
+  .grid{display:grid;gap:.7rem}
+  .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+</style>
+
+<div class="container-max">
+  <div class="row between" style="margin: 0 0 1.2rem 0">
+    <h2 style="margin:0">Администраторы</h2>
+    <div class="row">
+      <button class="btn btn-ghost" onclick="location.reload()">Обновить список</button>
+      <button class="btn btn-primary" id="openAdd">Добавить администратора</button>
+    </div>
+  </div>
+
+  <div class="card" style="padding:1.1rem">
+    <div class="row between" style="margin-bottom:.9rem">
+      <div>
+        <div class="muted" style="font-size:.9rem">Выберите чат</div>
+        <div class="row">
+          <select id="chatSelect" style="min-width:22rem" onchange="onChatChange(this)">
+            {% for c in chats %}
+              <option value="{{ c.id }}" {% if selected_chat and c.id==selected_chat.id %}selected{% endif %}>
+                {{ c.title or c.id }} ({{ c.id }}) — {{ c.chat_type }}
+              </option>
+            {% endfor %}
+          </select>
+          {% if selected_chat %}
+            <span class="muted">ID: {{ selected_chat.id }}</span>
+          {% endif %}
+        </div>
+      </div>
+      {% if selected_chat %}
+        <div class="muted">Админов: {{ admins|length }}</div>
+      {% endif %}
+    </div>
+
+    <div class="list">
+      {% if admins %}
+        {% for a in admins %}
+          <div class="list-item">
+            <div>
+              <div style="font-weight:600">
+                {{ '@'+a.user.username if a.user and a.user.username else a.user.display_name() if a.user else a.user_id }}
+                <span class="muted">#{{ a.user_id }}</span>
+              </div>
+              <div class="row" style="margin-top:.3rem">
+                {% if a.admin_prefix %}<span class="tag">{{ a.admin_prefix }}</span>{% endif %}
+              </div>
+            </div>
+            <div class="row">
+              <button
+                type="button"
+                class="btn btn-ghost edit-btn"
+                data-chat-id="{{ selected_chat.id }}"
+                data-user-id="{{ a.user_id }}"
+                data-username="{{ a.user.username or '' }}"
+                data-prefix="{{ a.admin_prefix or '' }}"
+                data-rights="{{ (a.admin_rights or '{}')|e }}">
+                Редактировать
+              </button>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="list-item muted">В этом чате администраторов пока нет.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Backdrop -->
+<div id="backdrop" class="modal-backdrop"></div>
+
+<!-- Add Admin Modal -->
+<div id="addModal" class="modal" aria-hidden="true">
+  <div class="card" style="width:min(760px,92vw);padding:1.1rem">
+    <form method="post" action="{{ url_for('admin_tools.admins_promote') }}">
+      <input type="hidden" name="chat_id" id="add_chat_id" value="{{ selected_chat.id if selected_chat else '' }}">
+      <div class="row between" style="margin-bottom:.6rem">
+        <h3 style="margin:0">Добавить администратора</h3>
+        <button type="button" class="btn btn-ghost" onclick="closeModals()">✕</button>
+      </div>
+
+      <div class="grid grid-2">
+        <label>ID или @username
+          <input type="text" name="who" required placeholder="123456789 или @nickname">
+        </label>
+        <label>Приписка (до 16 символов)
+          <input type="text" name="prefix" maxlength="16" placeholder="необязательно">
+        </label>
+      </div>
+
+      <div class="grid grid-2" style="margin-top:.8rem">
+        {% for key, label in rights_catalog %}
+          <label><input type="checkbox" name="rights_{{ key }}"> {{ label }}</label>
+        {% endfor %}
+      </div>
+
+      <div class="row between" style="margin-top:1rem">
+        <span></span>
+        <div class="row">
+          <button type="button" class="btn btn-ghost" onclick="closeModals()">Отмена</button>
+          <button class="btn btn-primary" type="submit">Назначить</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Admin Modal (single) -->
+<div id="editModal" class="modal" aria-hidden="true">
+  <div class="card" style="width:min(760px,92vw);padding:1.1rem">
+    <form id="editForm" method="post" action="{{ url_for('admin_tools.admins_update') }}">
+      <input type="hidden" name="chat_id" id="edit_chat_id" value="">
+      <input type="hidden" name="user_id" id="edit_user_id" value="">
+      <div class="row between" style="margin-bottom:.6rem">
+        <h3 id="editTitle" style="margin:0">Редактировать</h3>
+        <button type="button" class="btn btn-ghost" onclick="closeModals()">✕</button>
+      </div>
+
+      <div class="grid grid-2">
+        <label>Приписка
+          <input type="text" name="prefix" id="edit_prefix" maxlength="16" placeholder="до 16 символов">
+        </label>
+        <div class="muted">ID пользователя: <span id="edit_uid"></span></div>
+      </div>
+
+      <div class="grid grid-2" style="margin-top:.8rem">
+        {% for key, label in rights_catalog %}
+          <label><input type="checkbox" id="edit_r_{{ key }}" name="rights_{{ key }}"> {{ label }}</label>
+        {% endfor %}
+      </div>
+
+      <div class="row between" style="margin-top:1rem">
+        <div class="row">
+          <button type="button" id="btnDemote" class="btn btn-ghost">Снять права</button>
+          <button type="button" id="btnBan" class="btn btn-danger">Снять и забанить</button>
+        </div>
+        <div class="row">
+          <button type="button" class="btn btn-ghost" onclick="closeModals()">Отмена</button>
+          <button class="btn btn-primary" type="submit">Сохранить</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Вне модалок — отдельные формы для демоут/бан -->
+<form id="demoteForm" method="post" action="{{ url_for('admin_tools.admins_demote') }}" style="display:none">
+  <input type="hidden" name="chat_id" value="">
+  <input type="hidden" name="user_id" value="">
+</form>
+<form id="banForm" method="post" action="{{ url_for('admin_tools.admins_ban') }}" style="display:none">
+  <input type="hidden" name="chat_id" value="">
+  <input type="hidden" name="user_id" value="">
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const ADMINS_URL = "{{ url_for('admin_tools.admins') }}";
+  const chatSelect = document.getElementById('chatSelect');
+  window.onChatChange = function(sel){
+    location.href = ADMINS_URL + "?chat_id=" + encodeURIComponent(sel.value);
+  }
+
+  const backdrop = document.getElementById('backdrop');
+  const addModal  = document.getElementById('addModal');
+  const editModal = document.getElementById('editModal');
+
+  function openModal(el){ backdrop.classList.add('open'); el.classList.add('open'); }
+  window.closeModals = function(){ backdrop.classList.remove('open'); addModal.classList.remove('open'); editModal.classList.remove('open'); }
+  document.getElementById('openAdd').addEventListener('click', () => {
+    document.getElementById('add_chat_id').value = chatSelect ? chatSelect.value : "{{ selected_chat.id if selected_chat else '' }}";
+    openModal(addModal);
+  });
+  backdrop.addEventListener('click', window.closeModals);
+
+  // Делегирование клика по кнопкам «Редактировать»
+  document.addEventListener('click', function(e){
+    const btn = e.target.closest('.edit-btn');
+    if(!btn) return;
+
+    const chatId   = parseInt(btn.dataset.chatId);
+    const userId   = parseInt(btn.dataset.userId);
+    const username = btn.dataset.username || "";
+    const prefix   = btn.dataset.prefix || "";
+    let rightsObj  = {};
+    try { rightsObj = JSON.parse(btn.dataset.rights || "{}"); } catch(_) {}
+
+    document.getElementById('edit_chat_id').value = chatId;
+    document.getElementById('edit_user_id').value = userId;
+    document.getElementById('edit_uid').textContent = userId;
+    document.getElementById('edit_prefix').value = prefix;
+
+    {% for key, _ in rights_catalog %}
+      document.getElementById('edit_r_{{ key }}').checked = !!rightsObj["{{ key }}"];
+    {% endfor %}
+
+    const demoteForm = document.getElementById('demoteForm');
+    demoteForm.elements['chat_id'].value = chatId;
+    demoteForm.elements['user_id'].value = userId;
+    const banForm = document.getElementById('banForm');
+    banForm.elements['chat_id'].value = chatId;
+    banForm.elements['user_id'].value = userId;
+
+    document.getElementById('editTitle').textContent = "Редактировать @" + (username || userId);
+    openModal(editModal);
+  });
+
+  document.getElementById('btnDemote').addEventListener('click', () => {
+    document.getElementById('demoteForm').submit();
+  });
+  document.getElementById('btnBan').addEventListener('click', () => {
+    document.getElementById('banForm').submit();
+  });
+});
+</script>
+{% endblock %}

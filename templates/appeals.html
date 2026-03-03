@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-2xl font-semibold">Апелляции</h1>
+  <div class="text-sm text-gray-400">Последние 200 апелляций, сохранённых ботом</div>
+</div>
+
+{% if not appeals %}
+  <div class="bg-gray-800 border border-gray-700 rounded-lg p-4 text-gray-300">
+    Пока нет апелляций.
+  </div>
+{% else %}
+  <div class="space-y-4">
+    {% for a in appeals %}
+      <div class="bg-gray-800 border border-gray-700 rounded-lg p-4">
+        <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
+          <div>
+            <div class="text-sm text-gray-400">
+              {{ a.created_at.strftime('%Y-%m-%d %H:%M:%S') if a.created_at else '' }}
+            </div>
+            <div class="text-lg font-semibold">
+              {% if a.username %}@{{ a.username }}{% else %}id:{{ a.user_id }}{% endif %}
+              <span class="text-sm text-gray-400">(id: {{ a.user_id }})</span>
+            </div>
+            {% if a.first_name or a.last_name %}
+              <div class="text-sm text-gray-300">{{ a.first_name or '' }} {{ a.last_name or '' }}</div>
+            {% endif %}
+          </div>
+
+          <div class="flex items-center gap-2">
+            {% if a.answered_at %}
+              <span class="px-2 py-1 text-xs rounded bg-green-700/30 text-green-200 border border-green-700">Отвечено</span>
+            {% else %}
+              <span class="px-2 py-1 text-xs rounded bg-yellow-700/30 text-yellow-200 border border-yellow-700">Новая</span>
+            {% endif %}
+            <a
+              href="{{ url_for('bot_sender.bot_send') }}?chat_id={{ a.user_id }}"
+              class="text-sm px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white"
+              title="Откроет форму отправки сообщения (в ЛС пользователю)"
+            >Написать</a>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <div class="text-sm text-gray-400 mb-1">Текст апелляции</div>
+          <pre class="whitespace-pre-wrap text-gray-100 bg-gray-900/40 border border-gray-700 rounded p-3">{{ a.text }}</pre>
+        </div>
+
+        {% if a.punishments_snapshot %}
+          <div class="mt-3">
+            <details class="bg-gray-900/30 border border-gray-700 rounded p-3">
+              <summary class="cursor-pointer text-sm text-gray-300">Активные наказания на момент апелляции</summary>
+              <pre class="mt-2 whitespace-pre-wrap text-gray-100">{{ a.punishments_snapshot }}</pre>
+            </details>
+          </div>
+        {% endif %}
+
+        {% if a.answer_text %}
+          <div class="mt-3">
+            <div class="text-sm text-gray-400 mb-1">
+              Последний ответ
+              {% if a.answered_by_name %}<span class="text-gray-300">({{ a.answered_by_name }})</span>{% endif %}
+            </div>
+            <pre class="whitespace-pre-wrap text-gray-100 bg-gray-900/40 border border-gray-700 rounded p-3">{{ a.answer_text }}</pre>
+          </div>
+        {% endif %}
+
+        <form method="post" action="{{ url_for('appeals.appeal_reply', appeal_id=a.id) }}" class="mt-3 space-y-2">
+          <textarea
+            name="reply_text"
+            rows="3"
+            class="w-full bg-gray-900 border border-gray-700 rounded px-3 py-2 text-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            placeholder="Ответ пользователю (в личку) ..."
+          ></textarea>
+
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+            <label class="inline-flex items-center gap-2 text-sm text-gray-300">
+              <input type="checkbox" name="copy_to_appeals_chat" class="rounded border-gray-600 bg-gray-900" checked>
+              Копию в чат апелляций (реплаем к исходному)
+            </label>
+
+            <div class="flex items-center gap-2">
+              <button type="submit" class="px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-sm">
+                Отправить
+              </button>
+              <button type="submit" name="mark_resolved" value="1" class="px-4 py-2 rounded bg-gray-700 hover:bg-gray-600 text-white text-sm">
+                Отметить решённой
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,41 @@
+services:
+
+  bot:
+    build: .
+    command: python run.py bot
+    restart: unless-stopped
+    volumes:
+      - data:/data
+      - logs:/logs
+    env_file: .env
+    environment:
+      - ENV=production
+      - DATA_DIR=/data
+      - LOG_DIR=/logs
+      - GUNICORN_BIND=0.0.0.0:8000
+    depends_on: []
+
+  web:
+    build: .
+    command: gunicorn -c gunicorn_conf.py wsgi:app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - data:/data
+      - logs:/logs
+    env_file: .env
+    environment:
+      - ENV=production
+      - DATA_DIR=/data
+      - LOG_DIR=/logs
+      - GUNICORN_BIND=0.0.0.0:8000
+      - TRUST_PROXY_HEADERS=1
+
+volumes:
+  data:
+  logs:
+
+# Примечание: оба контейнера пишут в один SQLite-файл через shared volume.
+# Это работает для небольшой нагрузки. Для высокой нагрузки переходите на PostgreSQL
+# (измените DATABASE_URL в .env).

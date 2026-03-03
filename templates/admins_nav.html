@@ -1,0 +1,13 @@
+
+{# templates/partials/admins_nav.html — пункт "Админы" в стиле "Логи" #}
+{% if is_superadmin is not defined %}
+  {% set is_superadmin = session.get('role') == 'superadmin' %}
+{% endif %}
+
+{% if is_superadmin %}
+  <a href="{{ url_for('admin_tools.admins') }}"
+     class="sidebar-link flex items-center px-6 py-3 {% if request.endpoint == 'admin_tools.admins' %}active{% endif %}">
+    <i class="fas fa-user-shield w-6"></i>
+    <span class="ml-3">Админы</span>
+  </a>
+{% endif %}

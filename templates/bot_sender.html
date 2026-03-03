@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Отправка от имени бота{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Ручная отправка от имени бота</h1>
+        <p class="text-sm text-gray-600 mt-1">
+            Доступно только суперадминам. Можно отправлять текст, ответы и файлы.
+        </p>
+        <p class="text-xs text-gray-500 mt-2">
+            Подсказка: если в группе включены темы (Topics), укажи <b>message_thread_id</b>. Мы подгружаем известные топики из БД,
+            но можно ввести ID вручную.
+        </p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="bg-white shadow rounded-lg p-6 space-y-4">
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Куда отправить</label>
+            <input
+                type="text"
+                name="chat_id"
+                id="chatIdInput"
+                class="w-full border-gray-300 rounded-md shadow-sm"
+                placeholder="ID чата (-100...) или user_id для ЛС"
+                value="{{ selected_chat_id or '' }}"
+                required
+            />
+            <p class="text-xs text-gray-500 mt-1">
+                Можно выбрать чат из списка ниже — ID подставится автоматически. Для личного сообщения укажи <b>user_id</b>.
+            </p>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Выбрать чат из списка</label>
+            <select name="chat_select" id="chatSelect" class="w-full border-gray-300 rounded-md shadow-sm">
+                <option value="">-- выбери чат --</option>
+                {% for c in chats %}
+                    <option value="{{ c.id }}" {% if selected_chat_id == c.id %}selected{% endif %}>{{ c.title }} ({{ c.id }})</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <script>
+        (function() {
+            const select = document.getElementById('chatSelect');
+            const input = document.getElementById('chatIdInput');
+            if (select && input) {
+                select.addEventListener('change', function() {
+                    if (this.value) input.value = this.value;
+                });
+            }
+        })();
+        </script>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Топик (message_thread_id)</label>
+                <input type="text" name="thread_id" id="topicInput" list="topicDatalist" class="w-full border-gray-300 rounded-md shadow-sm" placeholder="например: 12345">
+                <datalist id="topicDatalist">
+                    {% for t in topics %}
+                        <option value="{{ t.thread_id }}">{{ (t.title or ('Topic ' ~ t.thread_id)) }}</option>
+                    {% endfor %}
+                </datalist>
+                <p class="text-xs text-gray-500 mt-1">
+                    Если отправляешь ответ на конкретное сообщение — топик обычно не обязателен.
+                </p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Ответ на сообщение (reply_to_message_id)</label>
+                <input type="text" name="reply_to_message_id" class="w-full border-gray-300 rounded-md shadow-sm" placeholder="например: 12345">
+                <p class="text-xs text-gray-500 mt-1">
+                    Оставь пустым, если не нужно отвечать на конкретное сообщение.
+                </p>
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Текст</label>
+            <textarea name="text" rows="5" class="w-full border-gray-300 rounded-md shadow-sm" placeholder="что отправить?"></textarea>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Файл (опционально)</label>
+            <input type="file" name="file" class="w-full">
+            <p class="text-xs text-gray-500 mt-1">
+                Если прикреплён файл, текст отправится как подпись.
+            </p>
+        </div>
+
+        <div class="flex items-center">
+            <input type="checkbox" name="disable_notification" id="disableNotif" class="h-4 w-4 text-indigo-600 border-gray-300 rounded">
+            <label for="disableNotif" class="ml-2 block text-sm text-gray-700">Без уведомления</label>
+        </div>
+
+        <div class="flex items-center justify-end space-x-3">
+            <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                <i class="fas fa-paper-plane mr-2"></i> Отправить
+            </button>
+        </div>
+    </form>
+</div>
+
+<script src="{{ url_for('static', filename='bot_sender.js') }}"></script>
+{% endblock %}

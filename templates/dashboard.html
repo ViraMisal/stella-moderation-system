@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Дашборд{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">
+            <i class="fas fa-chart-line text-purple-600 mr-3"></i>
+            Дашборд
+        </h1>
+        <p class="text-gray-600 mt-2">Обзор статистики и последних действий</p>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Users -->
+        <div class="card-hover bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Всего пользователей</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.total_users }}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-users text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Chats -->
+        <div class="card-hover bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Всего чатов</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.total_chats }}</p>
+                </div>
+                <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-comments text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Punishments -->
+        <div class="card-hover bg-white rounded-xl shadow-md p-6 border-l-4 border-orange-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Всего наказаний</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.total_punishments }}</p>
+                </div>
+                <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-gavel text-orange-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Active Punishments -->
+        <div class="card-hover bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-gray-600 text-sm font-medium">Активные наказания</p>
+                    <p class="text-3xl font-bold text-gray-900 mt-2">{{ stats.active_nonban }} <span class="text-base font-normal text-gray-500">(банов {{ stats.active_bans }})</span></p>
+                </div>
+                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-exclamation-circle text-red-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if stats.total_chats == 0 %}
+    <div class="bg-white rounded-xl shadow-md p-6 mb-8 border border-dashed border-gray-300">
+        <div class="flex items-start">
+            <div class="mr-4 text-gray-400">
+                <i class="fas fa-info-circle text-2xl"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-1">Нет доступных чатов</h3>
+                <p class="text-gray-600">Добавьте бота в группу или канал и выдайте ему права администратора. После этого здесь появится статистика и события.</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Charts and Tables Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <!-- Activity Chart -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-chart-bar text-purple-600 mr-2"></i>
+                Активность за неделю
+            </h2>
+            <div style="height: 250px;">
+                <canvas id="activityChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Top Offenders -->
+        <div class="bg-white rounded-xl shadow-md p-6">
+            <h2 class="text-xl font-bold text-gray-900 mb-4">
+                <i class="fas fa-user-slash text-red-600 mr-2"></i>
+                Топ нарушителей
+            </h2>
+            <div class="space-y-2 max-h-80 overflow-y-auto">
+                {% if stats.top_offenders %}
+                    {% for user, count in stats.top_offenders[:5] %}
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                                    {{ user.first_name[0] if user.first_name else 'U' }}
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">
+                                        {% if user.username %}@{{ user.username }}{% else %}{{ user.first_name or 'Unknown' }}{% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                            <span class="badge badge-danger text-xs">{{ count }}</span>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8 text-gray-400">
+                        <i class="fas fa-check-circle text-5xl mb-3"></i>
+                        <p>Нет нарушителей</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Punishments -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold text-gray-900 mb-6">
+            <i class="fas fa-history text-indigo-600 mr-2"></i>
+            Последние наказания
+        </h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Пользователь</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Чат</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Тип</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Причина</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Дата</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Статус</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% if stats.recent_punishments %}
+                        {% for p in stats.recent_punishments %}
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <a href="{{ url_for('users.user_detail', user_id=p.user_id) }}" class="text-purple-600 hover:text-purple-800 font-medium">
+                                        {% if p.user.username %}@{{ p.user.username }}{% else %}{{ p.user.first_name or 'Unknown' }}{% endif %}
+                                    </a>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    {{ p.chat.title if p.chat else p.chat_id }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="badge {% if p.type == 'ban' %}badge-danger{% elif p.type == 'mute' %}badge-warning{% else %}badge-info{% endif %}">
+                                        {{ p.type_display() }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                                    {{ p.reason or '-' }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                    {{ format_datetime(p.date) }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    {% if p.active %}
+                                        <span class="badge badge-danger">
+                                            <i class="fas fa-circle text-xs mr-1"></i>Активно
+                                        </span>
+                                    {% else %}
+                                        <span class="badge badge-success">
+                                            <i class="fas fa-check text-xs mr-1"></i>Завершено
+                                        </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-gray-400">
+                                <i class="fas fa-inbox text-5xl mb-3"></i>
+                                <p>Нет наказаний</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Activity Chart
+    const ctx = document.getElementById('activityChart');
+    const activityData = {{ stats.activity_data | tojson }};
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: activityData.map(d => d.date),
+            datasets: [{
+                label: 'Наказания',
+                data: activityData.map(d => d.count),
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: '#667eea',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            aspectRatio: 2,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1,
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+

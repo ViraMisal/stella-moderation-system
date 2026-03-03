@@ -1,0 +1,15 @@
+
+{# templates/partials/card_active_punishments.html #}
+{# Карточка для дашборда со счётчиком: Активных наказаний X (банов Y) #}
+<div class="bg-white rounded-xl shadow-sm p-4 md:p-5">
+  <div class="flex items-center justify-between">
+    <div class="text-sm text-gray-500">Активных наказаний</div>
+    <i class="fas fa-exclamation-circle text-indigo-500"></i>
+  </div>
+  <div class="mt-2">
+    <div class="text-2xl font-semibold text-gray-900">
+      {{ active_nonban }}
+      <span class="text-base font-normal text-gray-500">(банов {{ active_bans }})</span>
+    </div>
+  </div>
+</div>
