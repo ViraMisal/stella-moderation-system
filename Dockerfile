@@ -1,21 +1,20 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# Системные зависимости
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    tzdata \
+    tzdata curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Зависимости Python (отдельным слоем — кэшируются при изменении кода)
+# Непривилегированный пользователь
+RUN useradd -r -s /bin/false -u 1000 stella
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Исходники
 COPY . .
 
-# Данные и логи вынесены в volumes (не в образ)
-RUN mkdir -p /data /logs
+RUN mkdir -p /data /logs && chown -R stella:stella /data /logs /app
 
 ENV DATA_DIR=/data \
     LOG_DIR=/logs \
@@ -23,7 +22,8 @@ ENV DATA_DIR=/data \
     PYTHONUNBUFFERED=1 \
     TZ=Europe/Moscow
 
+USER stella
+
 EXPOSE 8000
 
-# CMD переопределяется в docker-compose.yml
 CMD ["python", "run.py", "all"]

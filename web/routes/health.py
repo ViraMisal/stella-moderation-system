@@ -25,6 +25,7 @@ def health():
 
 
 @health_bp.get("/metrics")
+@login_required
 def metrics():
     db = SessionLocal()
     try:

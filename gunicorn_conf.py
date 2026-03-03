@@ -19,6 +19,10 @@ loglevel = os.getenv("GUNICORN_LOGLEVEL", "info")
 # В проде обычно лучше не включать reload
 reload = os.getenv("GUNICORN_RELOAD", "0") in ("1", "true", "True", "yes")
 
+# Перезапуск воркеров после N запросов (защита от утечек памяти)
+max_requests = int(os.getenv("GUNICORN_MAX_REQUESTS", "1000"))
+max_requests_jitter = int(os.getenv("GUNICORN_MAX_REQUESTS_JITTER", "50"))
+
 # Логи
 accesslog = os.getenv("GUNICORN_ACCESSLOG", "-")  # '-' => stdout
 errorlog = os.getenv("GUNICORN_ERRORLOG", "-")    # '-' => stderr

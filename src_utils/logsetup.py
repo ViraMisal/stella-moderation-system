@@ -1,13 +1,28 @@
+import json
 import logging
 import os
 import sys
 from pathlib import Path
 
 
+class _JsonFormatter(logging.Formatter):
+    """Структурированный JSON-формат для production."""
+
+    def format(self, record):
+        entry = {
+            "ts": self.formatTime(record, "%Y-%m-%dT%H:%M:%S"),
+            "level": record.levelname,
+            "logger": record.name,
+            "msg": record.getMessage(),
+        }
+        if record.exc_info and record.exc_info[0]:
+            entry["exc"] = self.formatException(record.exc_info)
+        return json.dumps(entry, ensure_ascii=False)
+
+
 def setup_logging(name: str) -> logging.Logger:
     logger = logging.getLogger(name)
 
-    # Не добавляем хендлер повторно, если он уже есть
     if logger.handlers:
         return logger
 
@@ -15,12 +30,16 @@ def setup_logging(name: str) -> logging.Logger:
     level = getattr(logging, level_name, logging.INFO)
 
     handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(logging.Formatter(
-        "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    ))
-    handler.setLevel(level)
 
+    if os.getenv("ENV", "development").lower() == "production":
+        handler.setFormatter(_JsonFormatter())
+    else:
+        handler.setFormatter(logging.Formatter(
+            "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        ))
+
+    handler.setLevel(level)
     logger.addHandler(handler)
     logger.setLevel(level)
     logger.propagate = False
@@ -29,11 +48,7 @@ def setup_logging(name: str) -> logging.Logger:
 
 
 def force_utf8_console() -> None:
-    """Переключаем stdout/stderr на UTF-8.
-
-    На Windows (и иногда на Linux с LANG=C) по умолчанию может быть cp1252 или ascii.
-    Эмодзи в логах тогда падают с UnicodeEncodeError. Вызывать один раз при старте.
-    """
+    """Переключаем stdout/stderr на UTF-8."""
     try:
         if hasattr(sys.stdout, "reconfigure"):
             sys.stdout.reconfigure(encoding="utf-8", errors="replace")

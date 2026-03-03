@@ -15,12 +15,9 @@ class TestHealthEndpoint:
         data = resp.get_json()
         assert data["status"] in ("ok", "degraded")
 
-    def test_metrics_no_auth_required(self, client):
+    def test_metrics_requires_auth(self, client):
         resp = client.get("/metrics")
-        assert resp.status_code == 200
-        data = resp.get_json()
-        assert "users" in data
-        assert "punishments" in data
+        assert resp.status_code == 302  # редирект на /login
 
 
 class TestAuthRoutes:
