@@ -1,5 +1,4 @@
 """Тесты Flask-маршрутов (интеграционные)."""
-import pytest
 
 
 class TestHealthEndpoint:

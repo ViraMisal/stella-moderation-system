@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import sys
-from pathlib import Path
 
 
 class _JsonFormatter(logging.Formatter):

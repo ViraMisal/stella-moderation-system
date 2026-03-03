@@ -6,6 +6,7 @@ import datetime
 
 from telebot import types
 
+from core.models import Probation, SessionLocal
 from handlers.core import bot, now_utc
 from handlers.db import ensure_chat, ensure_user
 from handlers.guards import require_moderator, require_reason
@@ -17,7 +18,6 @@ from handlers.helpers import (
     safe_delete_message,
     try_enrich_user_from_chat,
 )
-from models import Probation, SessionLocal
 from src_utils.logsetup import setup_logging
 
 logger = setup_logging("bot.probation")

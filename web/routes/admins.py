@@ -5,7 +5,7 @@ from functools import wraps
 
 import telebot
 from flask import Blueprint, flash, redirect, render_template, request, session, url_for
-from sqlalchemy import desc, func
+from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
 from core.config import BOT_TOKEN

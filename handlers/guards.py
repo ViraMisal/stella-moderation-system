@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from telebot import types
 
-from config import SUPERADMIN_IDS
+from core.config import SUPERADMIN_IDS
+from core.settings import is_kill_switch_enabled
 from handlers.core import _set_topic_context, _tg_retry_call, bot
 from handlers.db import has_internal_role, is_user_blacklisted
 from handlers.helpers import notify_private, safe_delete_message, send_temp_message
-from settings_service import is_kill_switch_enabled
 from src_utils.logsetup import setup_logging
 
 logger = setup_logging("bot.guards")

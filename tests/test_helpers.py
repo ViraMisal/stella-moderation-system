@@ -1,5 +1,4 @@
 """Тесты handlers/helpers.py — парсинг длительности, форматирование."""
-import pytest
 
 from handlers.helpers import escape_html_text, human_duration, parse_duration_and_reason
 

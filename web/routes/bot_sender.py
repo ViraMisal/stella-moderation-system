@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import io
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 from werkzeug.utils import secure_filename
 
 from core.config import BOT_TOKEN

@@ -1,8 +1,6 @@
 """Тесты моделей SQLAlchemy (CRUD, методы моделей)."""
 import datetime
 
-import pytest
-
 
 class TestUserModel:
     def test_create_and_read(self, db_session):

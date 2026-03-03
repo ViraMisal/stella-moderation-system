@@ -10,8 +10,8 @@ from typing import Any, Dict, List, Optional
 
 from telebot import types
 
-from ai_deepseek import deepseek_chat_with_optional_image
-from config import (
+from core.ai import deepseek_chat_with_optional_image
+from core.config import (
     AI_DEFAULT_FALLBACK_TEXT,
     AI_DEFAULT_MAX_TOKENS,
     AI_DEFAULT_SYSTEM_PROMPT_IMAGE,
@@ -19,11 +19,11 @@ from config import (
     AI_DEFAULT_TEMPERATURE,
     SUPERADMIN_IDS,
 )
+from core.models import AIConversation, SessionLocal
+from core.settings import get_bool_setting, get_int_setting, get_setting
 from handlers.core import AI_LAST_TS, BOT_ID, BOT_USERNAME_EFFECTIVE, _set_topic_context, bot
 from handlers.db import is_user_blacklisted
 from handlers.helpers import safe_delete_message, send_temp_message
-from models import AIConversation, SessionLocal
-from settings_service import get_bool_setting, get_int_setting, get_setting
 from src_utils.logsetup import setup_logging
 
 logger = setup_logging("bot.ai")
@@ -40,14 +40,11 @@ _AI_BUG_KEYWORDS = (
 )
 
 _AI_TIPS = [
-    "🛩️ Инструкторская подсказка: держи высоту и не входи в затяжной вираж без нужды — энергия решает бой.",
-    "✈️ Подсказка Стеллы: если не уверен в решении — сначала разведай обстановку, потом действуй. Так меньше потерь.",
-    "🧭 В «Братстве» важно командное взаимодействие: координация с кланом часто сильнее любого самолёта.",
-    "🛠️ Если замечаешь странности или баги — лучше сразу в поддержку: @Warplane_Online_bot. Так мы быстрее найдём проблему.",
-    "📍 Иногда лучший манёвр — отступить на удобную позицию. Выжить и вернуться — тоже победа.",
-    "🎯 Старайся держать цель в зоне уверенного упреждения. Пара точных очередей лучше длинной «поливки».",
-    "🧊 В холодную голову всё считается легче: скорость, высота, дистанция. Паника — враг пилота.",
+    "💡 Подсказка: если не уверен в правилах — спроси у модераторов, они помогут.",
+    "📋 Правила существуют не ради ограничений, а чтобы всем было комфортно.",
     "👥 Новичкам нужна опора: пару спокойных подсказок в чате могут сделать их день.",
+    "🛠️ Если замечаешь баг — сообщи админам, чем быстрее узнаем, тем быстрее починим.",
+    "🤝 Уважай собеседника — даже в споре можно оставаться вежливым.",
 ]
 
 _MD_LINK_RE = re.compile(r"\[([^\]]+)\]\((https?://[^\)]+)\)")
@@ -178,17 +175,14 @@ def _ai_looks_like_bug_report(text: str) -> bool:
 
 
 def _ai_support_redirect_text() -> str:
-    return (
-        "Спасибо за сигнал. Если это баг или техническая проблема — пожалуйста, напишите в поддержку: "
-        "@Warplane_Online_bot"
-    )
+    return "Спасибо за сигнал. Если это баг или техническая проблема — сообщите администраторам чата."
 
 
 def _ai_random_tip() -> str:
     try:
         return random.choice(_AI_TIPS)
     except Exception:
-        return "✈️ Подсказка Стеллы: сохраняй спокойствие и действуй по ситуации."
+        return "💡 Подсказка: сохраняй спокойствие и будь вежлив."
 
 
 def _ai_speaker_label(user: types.User) -> str:

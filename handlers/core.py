@@ -15,8 +15,7 @@ from typing import Any, Dict, Optional, Tuple
 import telebot
 from telebot import types
 
-from config import (
-    BOT_ALLOWED_UPDATES,
+from core.config import (
     BOT_TOKEN,
     BOT_USERNAME,
 )

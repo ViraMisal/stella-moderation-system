@@ -9,7 +9,7 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.types import String
 
 from core.config import BOT_TOKEN
-from core.models import Chat, ChatMember, Note, Probation, Punishment, SessionLocal, User
+from core.models import Chat, Note, Probation, Punishment, SessionLocal, User
 from core.settings import is_kill_switch_enabled
 from web.context import get_accessible_chats, get_current_admin_info, is_current_superadmin
 from web.decorators import login_required

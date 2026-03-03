@@ -9,7 +9,9 @@ from typing import Any, Dict, Optional
 
 from telebot import types
 
-from config import SUPERADMIN_IDS
+from core.config import SUPERADMIN_IDS
+from core.models import RoleAssignment, SessionLocal
+from core.settings import is_kill_switch_enabled
 from handlers.core import (
     PENDING_DEMOTE,
     PENDING_LOCK,
@@ -20,10 +22,7 @@ from handlers.core import (
     to_unix_ts_utc,
 )
 from handlers.db import ensure_chat, ensure_chat_member, ensure_user
-from handlers.helpers import format_user_ref_html, human_duration
 from handlers.punishment import probation_multiplier, save_punishment_record
-from models import RoleAssignment, SessionLocal
-from settings_service import is_kill_switch_enabled
 from src_utils.logsetup import setup_logging
 
 logger = setup_logging("bot.demote")

@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import html
 from typing import List
 
 from telebot import types
 
+from core.models import Appeal, Chat, Punishment, SessionLocal
 from handlers.core import bot, now_utc
 from handlers.db import ensure_user, is_user_blacklisted
 from handlers.helpers import (
@@ -16,7 +16,6 @@ from handlers.helpers import (
     human_duration,
     safe_delete_message,
 )
-from models import Appeal, Chat, Punishment, SessionLocal
 from src_utils.logsetup import setup_logging
 
 logger = setup_logging("bot.appeals")

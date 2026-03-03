@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import datetime
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, flash, redirect, render_template, request, session, url_for
 
 from core.config import BOT_TOKEN
 from core.models import AdminLog, Appeal, SessionLocal

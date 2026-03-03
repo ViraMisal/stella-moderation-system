@@ -11,6 +11,14 @@ from typing import Optional, Tuple
 from sqlalchemy.exc import IntegrityError
 from telebot import types
 
+from core.models import (
+    Chat,
+    ChatMember,
+    ChatTopic,
+    RoleAssignment,
+    SessionLocal,
+    User,
+)
 from handlers.core import (
     SEEN_CHATS,
     SEEN_MEMBERS,
@@ -23,14 +31,6 @@ from handlers.core import (
     TOUCH_TOPIC_INTERVAL,
     TOUCH_TOPIC_TS,
     now_utc,
-)
-from models import (
-    Chat,
-    ChatMember,
-    ChatTopic,
-    RoleAssignment,
-    SessionLocal,
-    User,
 )
 from src_utils.logsetup import setup_logging
 

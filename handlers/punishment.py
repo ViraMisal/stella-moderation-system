@@ -6,12 +6,10 @@ import datetime
 import html
 from typing import Optional, Tuple
 
-from telebot import types
-
+from core.models import Chat, Probation, Punishment
 from handlers.core import now_utc
 from handlers.db import is_user_blacklisted
 from handlers.helpers import get_appeals_chat_id, human_duration
-from models import Chat, Probation, Punishment, SessionLocal
 from src_utils.logsetup import setup_logging
 
 logger = setup_logging("bot.punishment")

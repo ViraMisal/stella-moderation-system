@@ -13,8 +13,8 @@ from typing import Optional, Tuple
 
 from telebot import types
 
-from handlers.core import _tg_retry_call, bot, now_utc
-from models import SessionLocal, User
+from core.models import SessionLocal, User
+from handlers.core import _tg_retry_call, bot
 from src_utils.logsetup import setup_logging
 
 logger = setup_logging("bot.helpers")

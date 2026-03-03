@@ -5,7 +5,8 @@ from __future__ import annotations
 from telebot import types
 from telebot.handler_backends import ContinueHandling
 
-from config import SUPERADMIN_IDS
+from core.config import SUPERADMIN_IDS
+from core.models import ChatMember, SessionLocal
 from handlers.core import _set_topic_context, _tg_retry_call, bot
 from handlers.db import (
     ensure_chat,
@@ -16,7 +17,6 @@ from handlers.db import (
 )
 from handlers.guards import require_moderator
 from handlers.helpers import safe_delete_message, send_temp_message
-from models import ChatMember, SessionLocal
 from src_utils.logsetup import setup_logging
 
 logger = setup_logging("bot.system")

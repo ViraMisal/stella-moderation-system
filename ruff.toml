@@ -4,19 +4,12 @@ line-length = 120
 [lint]
 select = ["E", "F", "W", "I"]
 ignore = [
-    "E501",   # line too long — есть legacy-код с длинными строками
-    "F401",   # unused import — шимы специально реэкспортируют
-    "F403",   # wildcard import — шимы используют `from core.x import *`
-    "E711",   # comparison to None — SQLAlchemy filters используют == None
-    "E712",   # comparison to True/False — SQLAlchemy filters используют == True
+    "E501",   # line too long
+    "E711",   # comparison to None — SQLAlchemy
+    "E712",   # comparison to True/False — SQLAlchemy
 ]
 
 [lint.per-file-ignores]
-"config.py" = ["F401", "F403"]
-"models.py" = ["F401", "F403"]
-"settings_service.py" = ["F401", "F403"]
-"ai_deepseek.py" = ["F401", "F403"]
-"utils_tz.py" = ["F401", "F403"]
 "tests/*" = ["E501"]
 "run.py" = ["E402"]
 "scripts/*" = ["E402"]

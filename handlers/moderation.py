@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import datetime
-from typing import Optional
 
 from telebot import types
 
+from core.models import SessionLocal
 from handlers.core import _tg_retry_call, bot, now_utc, to_unix_ts_utc
 from handlers.db import ensure_chat, ensure_chat_member, ensure_user
 from handlers.demote import ask_demote_and_continue
@@ -19,11 +19,9 @@ from handlers.helpers import (
     parse_duration_and_reason,
     resolve_target_and_args,
     safe_delete_message,
-    send_temp_message,
     try_enrich_user_from_chat,
 )
 from handlers.punishment import deactivate_active_punishments, probation_multiplier, save_punishment_record
-from models import SessionLocal
 from src_utils.logsetup import setup_logging
 
 logger = setup_logging("bot.moderation")

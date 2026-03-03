@@ -8,7 +8,7 @@ import csv
 import json
 from datetime import datetime
 
-from models import AdminLog, Chat, Note, Punishment, SessionLocal, User
+from core.models import AdminLog, Chat, Note, Punishment, SessionLocal, User
 
 
 def export_users_to_csv(filename="users_export.csv"):

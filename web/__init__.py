@@ -8,7 +8,7 @@ import os
 from flask import Flask, render_template, session
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from core.config import FLASK_SECRET, TIMEZONE
+from core.config import FLASK_SECRET
 from core.tz import to_msk_str
 
 

@@ -23,11 +23,11 @@ import handlers.probation  # noqa: F401 — /probation /unprobation
 
 # Каждый импорт вешает хендлеры через @bot.message_handler
 import handlers.system  # noqa: F401 — track_activity, on_my_chat_member, /start /scan /where
-from config import BOT_ALLOWED_UPDATES
+from core.config import BOT_ALLOWED_UPDATES
+from core.models import Probation, Punishment, SessionLocal
 
 # Импорт core создаёт bot-инстанс и глобальное состояние
 from handlers.core import (
-    BOT_USERNAME_EFFECTIVE,
     EXPIRE_FAIL_LOG_INTERVAL,
     EXPIRE_FAIL_LOG_TS,
     _tg_retry_call,
@@ -35,7 +35,6 @@ from handlers.core import (
     now_utc,
 )
 from handlers.helpers import get_chat_default_permissions
-from models import Probation, Punishment, SessionLocal
 from src_utils.logsetup import setup_logging
 
 logger = setup_logging("bot")
