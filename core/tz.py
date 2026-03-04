@@ -15,10 +15,7 @@ except Exception:  # pragma: no cover
 
 
 def get_tz(name: str | None):
-    """Безопасно получить таймзону.
-
-    Возвращает ZoneInfo(...) если возможно, иначе fixed-offset UTC+3.
-    """
+    """ZoneInfo если есть, иначе фоллбэк на UTC+3."""
     if ZoneInfo and name:
         try:
             return ZoneInfo(name)
@@ -34,10 +31,7 @@ DEFAULT_TZ = get_tz("Europe/Moscow")
 
 
 def to_msk(dt: datetime | None) -> datetime | None:
-    """Переводит datetime в МСК (UTC+3).
-
-    Если dt naive — считаем его UTC.
-    """
+    """Переводит в МСК. Naive datetime считается UTC."""
     if not dt:
         return None
 

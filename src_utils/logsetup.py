@@ -10,7 +10,7 @@ _HUMAN_DATEFMT = "%Y-%m-%d %H:%M:%S"
 
 
 class _JsonFormatter(logging.Formatter):
-    """Структурированный JSON-формат для production."""
+    """JSON-формат логов для прода."""
 
     def format(self, record):
         entry = {
@@ -25,7 +25,7 @@ class _JsonFormatter(logging.Formatter):
 
 
 def _add_file_handler(logger: logging.Logger, name: str, level: int) -> None:
-    """Добавляет RotatingFileHandler если LOG_DIR доступен."""
+    """Пишем логи в файл если задан LOG_DIR."""
     log_dir = os.getenv("LOG_DIR", "").strip()
     if not log_dir:
         return

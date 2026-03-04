@@ -1,7 +1,6 @@
-"""Алерты в Telegram: уведомления суперадмину о критических событиях.
+"""Алерты в Telegram — шлёт в ЛС суперадмину если что-то упало.
 
-Отправляет напрямую через HTTP (urllib), без зависимости от bot-инстанса —
-работает даже если бот упал.
+Через urllib напрямую, без bot-инстанса (работает даже если бот лёг).
 """
 
 from __future__ import annotations
@@ -48,7 +47,7 @@ def _should_send(alert_type: str) -> bool:
 
 
 def _send_tg(token: str, chat_id: int, text: str) -> bool:
-    """Отправка через Telegram Bot API (urllib, без requests)."""
+    """Шлёт сообщение через TG Bot API."""
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     payload = json.dumps({
         "chat_id": chat_id,
@@ -70,11 +69,7 @@ def _send_tg(token: str, chat_id: int, text: str) -> bool:
 
 
 def send_alert(alert_type: str, message: str) -> None:
-    """Отправляет алерт суперадминам если не в кулдауне.
-
-    alert_type — ключ для антиспама (bot_started, bot_crash, web_error, db_down).
-    message — текст сообщения (поддерживает HTML).
-    """
+    """Шлёт алерт суперадминам (с антиспамом по alert_type)."""
     if not _should_send(alert_type):
         return
 

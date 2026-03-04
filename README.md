@@ -34,6 +34,8 @@ core/            — конфигурация, модели, настройки
 web/routes/      — Flask-панель (9 модулей)
 handlers/        — обработчики бота (11 модулей)
 services/health/ — Go-микросервис мониторинга (:9090)
+src_utils/       — логирование, алерты
+scripts/         — watchdog, миграции, утилиты
 tests/           — pytest
 deploy/          — systemd, nginx
 ```

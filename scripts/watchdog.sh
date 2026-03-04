@@ -52,6 +52,18 @@ if ! systemctl is-active --quiet stella-web 2>/dev/null; then
     PROBLEMS="$PROBLEMS\n- stella-web не активен"
 fi
 
+# Проверка Go health-сервиса (БД + readiness)
+HEALTH_PORT="${HEALTH_PORT:-9090}"
+if curl -sf -o /dev/null --max-time 5 "http://localhost:${HEALTH_PORT}/health"; then
+    # health-сервис жив — проверяем БД через него
+    DB_OK=$(curl -sf --max-time 5 "http://localhost:${HEALTH_PORT}/health" | grep -o '"db":true' || true)
+    if [ -z "$DB_OK" ]; then
+        PROBLEMS="$PROBLEMS\n- БД недоступна (health-сервис вернул db:false)"
+    fi
+else
+    PROBLEMS="$PROBLEMS\n- Go health-сервис не отвечает (:${HEALTH_PORT})"
+fi
+
 # Отправка если есть проблемы
 if [ -n "$PROBLEMS" ]; then
     send_alert "<b>[WATCHDOG]</b> Проблемы:$(echo -e "$PROBLEMS")"
