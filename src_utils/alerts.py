@@ -86,6 +86,8 @@ def send_alert(alert_type: str, message: str) -> None:
         "bot_crash": "[CRASH]",
         "web_error": "[WEB ERROR]",
         "db_down": "[DB DOWN]",
+        "brute_force": "[BRUTE]",
+        "daily_report": "[REPORT]",
     }.get(alert_type, "[ALERT]")
 
     text = f"<b>{prefix}</b> {message}"

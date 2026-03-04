@@ -337,7 +337,7 @@ def punish_user_via_web(user_id):
                 can_send_messages=True, can_send_audios=False, can_send_documents=False,
                 can_send_photos=False, can_send_videos=False, can_send_video_notes=False,
                 can_send_voice_notes=False, can_send_polls=False, can_send_other_messages=False,
-                can_add_web_page_previews=True), until_date=until_ts)
+                can_add_web_page_previews=False), until_date=until_ts)
         elif p_type == "ban":
             tbot.ban_chat_member(chat_id, user_id, until_date=until_ts)
         elif p_type == "kick":

@@ -25,7 +25,7 @@ def is_chat_admin(chat_id: int, user_id: int) -> bool:
 def can_moderate(chat_id: int, user_id: int) -> bool:
     if user_id in SUPERADMIN_IDS:
         return True
-    from models import SessionLocal
+    from core.models import SessionLocal
     db = SessionLocal()
     try:
         if is_user_blacklisted(db, user_id):

@@ -208,7 +208,7 @@ def try_enrich_user_from_chat(chat_id: int, user: types.User) -> types.User:
 
 def get_appeals_chat_id() -> Optional[int]:
     """Читает ID чата для апелляций: сначала из настроек панели, потом из .env."""
-    from settings_service import get_setting
+    from core.settings import get_setting
     raw = (get_setting("appeals_chat_id", "") or "").strip()
     if not raw:
         raw = (os.getenv("APPEALS_CHAT_ID", "") or "").strip()

@@ -18,6 +18,7 @@ from core.config import (
     BOT_USERNAME,
 )
 from core.models import SessionLocal, User
+from src_utils.alerts import send_alert
 from web.admin_groups import update_user_admin_status
 from web.context import get_current_admin_info
 from web.utils import log_admin_action
@@ -71,6 +72,7 @@ def login():
     if request.method == "POST":
         ip = _client_ip()
         if _is_rate_limited(ip):
+            send_alert("brute_force", f"Rate limit на логин: {ip}")
             flash("Слишком много попыток входа. Подождите и попробуйте снова.", "error")
             return render_template("login.html", bot_username=BOT_USERNAME), 429
 
@@ -100,11 +102,14 @@ def tg_auth():
     secret = hashlib.sha256(BOT_TOKEN.encode()).digest()
     calc_hash = hmac.new(secret, data_check.encode(), hashlib.sha256).hexdigest()
 
-    if calc_hash != received_hash:
+    if not hmac.compare_digest(calc_hash, received_hash):
         flash("Telegram авторизация отклонена (hash mismatch).", "error")
         return redirect(url_for("auth.login"))
 
-    auth_date = int(data.get("auth_date", "0") or "0")
+    try:
+        auth_date = int(data.get("auth_date", "0") or "0")
+    except (ValueError, TypeError):
+        auth_date = 0
     if abs(time.time() - auth_date) > 3600:
         flash("Сессия авторизации устарела, попробуйте снова.", "error")
         return redirect(url_for("auth.login"))
