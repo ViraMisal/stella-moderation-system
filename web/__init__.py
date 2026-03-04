@@ -10,6 +10,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 
 from core.config import FLASK_SECRET
 from core.tz import to_msk_str
+from src_utils.alerts import send_alert
 
 
 def create_app() -> Flask:
@@ -132,6 +133,7 @@ def create_app() -> Flask:
     @app.errorhandler(Exception)
     def handle_exception(e):
         app.logger.error("Unhandled exception: %s", e, exc_info=True)
+        send_alert("web_error", f"500: {type(e).__name__}: {e}")
         try:
             return render_template("error.html", error_code=500,
                                    error_message=f"Ошибка: {e}"), 500

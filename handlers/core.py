@@ -19,6 +19,7 @@ from core.config import (
     BOT_TOKEN,
     BOT_USERNAME,
 )
+from src_utils.alerts import send_alert
 from src_utils.logsetup import setup_logging
 
 logger = setup_logging("bot.core")
@@ -46,6 +47,7 @@ class _StellaExceptionHandler(telebot.ExceptionHandler):
     def handle(self, exception):
         try:
             logger.error("Необработанная ошибка TeleBot: %s", exception, exc_info=True)
+            send_alert("bot_crash", f"Ошибка TeleBot: {exception}")
         except Exception:
             pass
         return True  # True = поллинг продолжается

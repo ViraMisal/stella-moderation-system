@@ -35,6 +35,7 @@ from handlers.core import (
     now_utc,
 )
 from handlers.helpers import get_chat_default_permissions
+from src_utils.alerts import send_alert
 from src_utils.logsetup import setup_logging
 
 logger = setup_logging("bot")
@@ -170,6 +171,7 @@ def start_bot():
     t.start()
 
     logger.info("Bot started")
+    send_alert("bot_started", "Бот запущен")
 
     while True:
         try:
@@ -182,6 +184,7 @@ def start_bot():
             break
         except Exception as e:
             logger.error("Polling crashed: %s", e)
+            send_alert("bot_crash", f"Polling упал: {e}")
             time.sleep(3)
             continue
 
